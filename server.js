@@ -1,7 +1,11 @@
 import express from "express";
 import request from "request";
+import { createServer } from "http";
 
 const app = express();
+const server = createServer(app);
+const io = require('socket.io')(server);
+
 const port = 3000;
 let currentState = {};
 const conversions = ["AUD", "BRL", "CAD", "CHF", "CLP", "CNY", "CZK", "DKK", "EUR", "GBP", "HKD", "HUF", "IDR", "ILS", "INR", "JPY", "KRW", "MXN", "MYR", "NOK", "NZD", "PHP", "PKR", "PLN", "RUB", "SEK", "SGD", "THB", "TRY", "TWD", "ZAR"].sort();
@@ -9,16 +13,21 @@ const conversions = ["AUD", "BRL", "CAD", "CHF", "CLP", "CNY", "CZK", "DKK", "EU
 app.set('json spaces', 4);
 
 const updateData = (currentConversions, newState) => {
-    if(!currentConversions.length) {
-        if(!Object.keys(currentState).length || currentState["BTC"].last_updated > newState["BTC"].last_updated) {
+    if(!newState) {
+        newState = {};
+    }
+
+    if(currentConversions.length === 0) {
+        if(!currentState["BTC"]) {
+            currentState = newState;
+            console.info(`Initialized all coins.`);
+        }
+
+        if(newState["BTC"] && currentState["BTC"].last_updated < newState["BTC"].last_updated) {
             currentState = newState;
             console.info(`Updated all coins.`);
         }
         return;
-    }
-
-    if(!newState) {
-        newState = {};
     }
 
     const currentCurrency = currentConversions.splice(0, 1);
@@ -52,12 +61,6 @@ const updateData = (currentConversions, newState) => {
     });
 };
 
-updateData(conversions);
-setInterval(() => {
-    updateData(conversions);
-}, 480 * 1000);
-
-
 app.get('/coins', (req, resp) => {
     resp.json(currentState);
 });
@@ -77,10 +80,23 @@ app.get('/coins/:coin', (req, resp) => {
     }
 });
 
-app.listen(port, (err) => {
+io.on('connection', socket => {
+    console.log("Someone just connected.");
+
+    socket.emit('request', /* */); // emit an event to the socket
+    io.emit('broadcast', /* */); // emit an event to all connected sockets
+    socket.on('reply', () => { /* */ }); // listen to the event
+});
+
+server.listen(port, (err) => {
     if (err) {
         return console.log('Something bad happened', err);
     }
 
     console.log(`Server is listening on ${port}`);
 });
+
+updateData(conversions);
+setInterval(() => {
+    updateData(conversions);
+}, 480 * 1000);
