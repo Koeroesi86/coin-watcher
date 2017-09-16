@@ -10,8 +10,10 @@ app.set('json spaces', 4);
 
 const updateData = (currentConversions, newState) => {
     if(!currentConversions.length) {
-        currentState = newState;
-        console.info(`Updated all coins.`);
+        if(!Object.keys(currentState).length || currentState["BTC"].last_updated > newState["BTC"].last_updated) {
+            currentState = newState;
+            console.info(`Updated all coins.`);
+        }
         return;
     }
 
