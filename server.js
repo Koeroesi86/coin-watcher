@@ -29,18 +29,18 @@ const updateData = (currentConversions, newState) => {
                     symbol: currency.symbol,
                     name: currency.name,
                     prices: {
-                        USD: currency.price_usd,
-                        BTC: currency.price_btc
+                        USD: currency.price_usd || "0",
+                        BTC: currency.price_btc || "0"
                     },
                     caps: {
-                        USD: currency.market_cap_usd
+                        USD: currency.market_cap_usd || "0"
                     },
                     last_updated: currency.last_updated
                 };
             }
 
-            newState[currency.symbol].prices[currentCurrency] = currency[`price_${currentCurrency.toString().toLowerCase()}`];
-            newState[currency.symbol].caps[currentCurrency] = currency[`market_cap_${currentCurrency.toString().toLowerCase()}`];
+            newState[currency.symbol].prices[currentCurrency] = currency[`price_${currentCurrency.toString().toLowerCase()}`] || "0";
+            newState[currency.symbol].caps[currentCurrency] = currency[`market_cap_${currentCurrency.toString().toLowerCase()}`] || "0";
         }
 
         console.info(`Updated data for ${currentCurrency}`);
